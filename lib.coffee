@@ -1,0 +1,241 @@
+class ClassyTestCase
+  # Unique callable identifier.
+  @_serverCallableId: 0
+  # Callables.
+  @_serverCallables: {}
+
+  constructor: ->
+    # Tag server-specific setup/tear down methods so they always run on the server.
+    ClassyTestCase.runOnServer @setUpServer
+    ClassyTestCase.runOnServer @setUp
+    ClassyTestCase.runOnServer @tearDownServer
+    ClassyTestCase.runOnServer @tearDown
+
+    # Initialize current test/expect instances.
+    @_test = null
+    @_expect = null
+
+  @addTest: (testCase) ->
+    # Check if the test has a name defined.
+    throw new Error "Test case must have a name defined." unless testCase.constructor.getTestName()
+
+    # Register the test case.
+    for name, testFunction of testCase
+      do (name, testFunction) =>
+        return unless name.slice(0, 4) is 'test'
+        return unless _.isFunction(testFunction) or _.isArray(testFunction)
+
+        # Extract server-side callables from client functions.
+        testChain = []
+        testCase._processTestFunction testChain, testCase.setUpServer
+        testCase._processTestFunction testChain, testCase.setUp
+        testCase._processTestFunction testChain, testCase.setUpClient
+        testCase._processTestFunction testChain, testFunction
+        testCase._processTestFunction testChain, testCase.tearDownClient
+        testCase._processTestFunction testChain, testCase.tearDownServer
+        testCase._processTestFunction testChain, testCase.tearDown
+        testCase._processTestFunction testChain, ->
+          # Reset test/expect instances.
+          @_test = null
+          @_expect = null
+
+          # Unsubscribe from everything the test cases subscribed to.
+          @unsubscribeAll()
+
+        # Check for client- or server-only tests.
+        return if name.slice(0, 10) is 'testClient' and not Meteor.isClient
+        return if name.slice(0, 10) is 'testServer' and not Meteor.isServer
+
+        # Execute the test.
+        testAsyncMulti "#{ testCase.constructor.getTestName() } - #{ name.slice(4) }", testChain
+
+  _processTestFunction: (testChain, testFunction) =>
+    if _.isArray testFunction
+      testBody = testFunction
+    else
+      testBody = [testFunction]
+
+    for testItem in testBody
+      do (testItem) =>
+        boundItem = (test, expect) =>
+          @_test = test
+          @_expect = expect
+
+          testItem.call @
+
+        boundItem.testCase = @
+
+        if testItem.runOnServer
+          if Meteor.isServer
+            # Register callable on the server.
+            ClassyTestCase._serverCallables[testItem.serverCallableId] = boundItem
+            testChain.push boundItem
+          else
+            # Call the callable via a method on the client.
+            testChain.push (test, expect) =>
+              Meteor.call 'classyTest.testCallable', testItem.serverCallableId, expect (error, result) =>
+                # Handle internal errors.
+                test.isUndefined error, "Server-side callable test failed: #{ error }"
+                return unless _.isUndefined error
+
+                # Replay test results on the client.
+                for event in result
+                  switch event.type
+                    when 'fail' then test.fail event.details
+                    when 'ok' then test.ok event.details
+                    when 'export'
+                      # Export variables.
+                      for name, value of event.details
+                        @set name, value
+                    else
+                      # Ignore all unhandled event types.
+        else
+          testChain.push boundItem
+
+  @getTestName: ->
+    @testName
+
+  @runOnServer: (callable) ->
+    # Mark the callable for running on the server.
+    callable.runOnServer = true
+    callable.serverCallableId = ++ClassyTestCase._serverCallableId
+    callable
+
+  assertEqual: (actual, expected, message) =>
+    @_test.equal actual, expected, message
+
+  assertNotEqual: (actual, expected, message) =>
+    @_test.notEqual actual, expected, message
+
+  assertInstanceOf: (obj, klass) =>
+    @_test.instanceOf obj, klass
+
+  assertMatches: (actual, regexp, message) =>
+    @_test.matches actual, regexp, message
+
+  assertThrows: (func, expected) =>
+    @_test.throws func, expected
+
+  assertTrue: (value, msg) =>
+    @_test.isTrue value, msg
+
+  assertFalse: (value, msg) =>
+    @_test.isFalse value, msg
+
+  assertIsNull: (value, msg) =>
+    @_test.isNull value, msg
+
+  assertIsNotNull: (value, msg) =>
+    @_test.isNotNull value, msg
+
+  assertIsUndefined: (value, msg) =>
+    @_test.isUndefined value, msg
+
+  assertIsNaN: (value, msg) =>
+    @_test.isNaN value, msg
+
+  assertContains: (sequence=[], value) =>
+    @_test.include sequence, value
+
+  assertItemsEqual: (actual, expected) =>
+    actual ||= []
+    expected ||= []
+
+    intersectionObjects = (array, rest...) ->
+      _.filter _.uniq(array), (item) ->
+        _.every rest, (other) ->
+          _.any other, (element) -> _.isEqual element, item
+
+    if actual.length is expected.length and intersectionObjects(actual, expected).length is actual.length
+      @_test.ok()
+    else
+      @_test.fail
+        type: 'assert_set_equal'
+        actual: JSON.stringify actual
+        expected: JSON.stringify expected
+
+  assertLengthOf: (obj=[], expected, msg) =>
+    @_test.length obj, expected, msg
+
+  assertFail: (doc) =>
+    @_test.fail doc
+
+  assertSubscribeSuccessful: (endpoint, args..., callback) =>
+    # Try subscribing to the endpoint.
+    @subscribe endpoint, args...,
+      onReady: =>
+        @assertTrue true
+        callback?()
+      onError: =>
+        @assertFail
+          type: 'subscribe'
+          message: "Subscrption to endpoint failed, but should have succeeded."
+        callback?()
+
+  assertSubscribeFails: (endpoint, args..., callback) =>
+    # Try subscribing to the endpoint.
+    @subscribe endpoint, args...,
+      onReady: =>
+        @assertFail
+          type: 'subscribe'
+          message: "Subscription to endpoint was successful, but shouldn't be."
+        callback?()
+      onError: =>
+        @assertTrue true
+        callback?()
+
+  expect: (args...) =>
+    @_expect args...
+
+  switchUser: (username, password, callback) =>
+    # Stop all subscriptions to prevent errors while switching users.
+    @unsubscribeAll()
+
+    # Log the current user out.
+    Meteor.logout (error) =>
+      @assertIsUndefined error, "User logout failed: #{ error }"
+
+      # Switch to the other user.
+      Meteor.loginWithPassword username, password, (error) =>
+        @assertIsUndefined error, "User login failed: #{ error }"
+        callback?()
+
+  setUp: =>
+    # Default implementation does nothing.
+
+  setUpServer: =>
+    # Default implementation does nothing.
+
+  setUpClient: =>
+    # Default implementation does nothing.
+
+  tearDown: =>
+    # Default implementation does nothing.
+
+  tearDownServer: =>
+    # Default implementation does nothing.
+
+  tearDownClient: =>
+    # Default implementation does nothing.
+
+  set: (name, value) =>
+    # Exports the variable to other tests.
+    @exportedVariables ?= {}
+    @exportedVariables[name] = value
+
+  get: (name) =>
+    # Retrieves a previously set variable.
+    @exportedVariables[name]
+
+  subscribe: (args...) =>
+    # Store subscription so we can unsubscribe from everything on tear down.
+    @subscriptions ?= []
+    @subscriptions.push Meteor.subscribe args...
+
+  unsubscribeAll: =>
+    return unless _.isArray @subscriptions
+
+    # Unsubscribe from everything the test cases subscribed to.
+    subscription.stop() for subscription in @subscriptions
+
+    @subscriptions = []
