@@ -48,17 +48,23 @@ Classy test assertions are named slightly differently than in tinytest, but are 
  * `assertEqual(actual, expected, message)` asserts that `actual` is equal to `expected`.
  * `assertNotEqual(a, b, message)` asserts that `a` is not equal to `b`.
  * `assertInstanceOf(object, class)` asserts that `object` is an instance of `class`.
- * `assertMatches(string, regexp, message)` asserts that `string` matches the regular expression `regexp`.
+ * `assertNotInstanceOf(object, class)` asserts that `object` is not an instance of `class`.
+ * `assertRegexpMatches(string, regexp, message)` asserts that `string` matches the regular expression `regexp`.
+ * `assertNotRegexpMatches(string, regexp, message)` asserts that `string` does not match the regular expression `regexp`.
  * `assertThrows(function, exception)` asserts that `function` throws `exception`.
  * `assertTrue(value, message)` asserts that `value` is `true`.
  * `assertFalse(value, message)` asserts that `value` is `false`.
  * `assertIsNull(value, message)` asserts that `value` is `null`.
  * `assertIsNotNull(value, message)` asserts that `value` is not `null`.
  * `assertIsUndefined(value, message)` asserts that `value` is `undefined`.
+ * `assertIsNotUndefined(value, message)` asserts that `value` is not `undefined`.
  * `assertIsNaN(value, message)` asserts that `value` is `NaN`.
- * `assertContains(sequence, value)` asserts that `sequence` contains an element `value`.
- * `assertItemsEqual(actual, expected)` asserts that sequences `actual` and `expected` contain the same elements (disregarding their order).
- * `assertLengthOf(sequence, length, message)` asserts that the length of `sequence` is `length`.
+ * `assertIsNotNaN(value, message)` asserts that `value` is not `NaN`.
+ * `assertIn(value, collection)` asserts that `collection` contains an element `value`.
+ * `assertNotIn(value, collection)` asserts that `collection` does not contain an element `value`.
+ * `assertItemsEqual(actual, expected)` asserts that arrays `actual` and `expected` contain the same elements (disregarding their order).
+ * `assertObjectContainsSubset(actual, expected)` asserts that the key/value pairs in an object `actual` are a (non-strict) superset of those in `expected`.
+ * `assertLengthOf(array, length, message)` asserts that the length of `array` is `length`.
  * `assertSubscribeSuccessful(endpoint, args..., callback)` asserts that subscription to Meteor endpoint `endpoint` using arguments `args...` is successful. This is an async assertion where `callback` is called after evaluation is completed.
  * `assertSubscribeFails(endpoint, args..., callback)` asserts that subscription to Meteor endpoint `endpoint` using arguments `args...` fails with an error. This is an async assertion where `callback` is called after evaluation is completed.
 

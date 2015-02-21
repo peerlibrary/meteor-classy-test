@@ -110,8 +110,27 @@ class ClassyTestCase
   assertInstanceOf: (obj, klass) =>
     @_test.instanceOf obj, klass
 
-  assertMatches: (actual, regexp, message) =>
+  assertNotInstanceOf: (obj, klass) =>
+    if obj not instanceof klass
+      @_test.ok()
+    else
+      @_test.fail
+        type: 'instanceOf'
+        not: true
+
+  assertRegexpMatches: (actual, regexp, message) =>
     @_test.matches actual, regexp, message
+
+  assertNotRegexpMatches: (actual, regexp, message) =>
+    if not regexp.test actual
+      this.ok()
+    else
+      this.fail
+        type: 'matches'
+        message: message
+        actual: actual
+        regexp: regexp.toString()
+        not: true
 
   assertThrows: (func, expected) =>
     @_test.throws func, expected
@@ -131,11 +150,49 @@ class ClassyTestCase
   assertIsUndefined: (value, msg) =>
     @_test.isUndefined value, msg
 
+  assertIsNotUndefined: (value, msg) =>
+    if value isnt undefined
+      @_test.ok()
+    else
+      @_test.fail
+        type: 'undefined'
+        message: msg
+        not: true
+
   assertIsNaN: (value, msg) =>
     @_test.isNaN value, msg
 
-  assertContains: (sequence=[], value) =>
-    @_test.include sequence, value
+  assertIsNotNaN: (value, msg) =>
+    if not isNaN v
+      this.ok()
+    else
+      this.fail
+        type: 'NaN'
+        message: msg
+        not: true
+
+  assertIn: (value, collection=[]) =>
+    @_test.include collection, value
+
+  assertNotIn: (value, collection=[]) =>
+    # Same as @_test.include implementation, just negated.
+
+    pass = false
+    if collection instanceof Array
+      pass = _.any collection, (it) -> _.isEqual value, it
+    else if typeof collection is 'object'
+      pass = value in collection
+    else if typeof collection is 'string'
+      pass = collection.indexOf value > -1
+
+    if not pass
+      @ok()
+    else
+      @fail
+        type: 'include'
+        sequence: collection
+        should_contain_value: value
+        not: true
 
   assertItemsEqual: (actual, expected) =>
     actual ||= []
@@ -150,7 +207,21 @@ class ClassyTestCase
       @_test.ok()
     else
       @_test.fail
-        type: 'assert_set_equal'
+        type: 'itemsEqual'
+        actual: JSON.stringify actual
+        expected: JSON.stringify expected
+
+  assertObjectContainsSubset: (actual, expected) =>
+    subset = ->
+      for key, value of expected
+        return false unless _.isEqual actual[key], value
+      true
+
+    if subset()
+      @_test.ok()
+    else
+      @_test.fail
+        type: 'objectContainsSubset'
         actual: JSON.stringify actual
         expected: JSON.stringify expected
 
