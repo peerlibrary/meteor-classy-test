@@ -89,6 +89,10 @@ class ClassyTestCase
                         @set name, value
                     else
                       # Ignore all unhandled event types.
+
+            # If the callable is marked to run on both client and server, push another client-side version.
+            if testItem.runOnBoth
+              testChain.push boundItem
         else
           testChain.push boundItem
 
@@ -100,6 +104,11 @@ class ClassyTestCase
     callable.runOnServer = true
     callable.serverCallableId = ++ClassyTestCase._serverCallableId
     callable
+
+  @runOnBoth: (callable) ->
+    # Mark the callable for running on the server and on the client.
+    callable.runOnBoth = true
+    @runOnServer callable
 
   assertEqual: (actual, expected, message) =>
     @_test.equal actual, expected, message

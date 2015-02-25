@@ -144,7 +144,7 @@ Note that in this case set up and tear down methods are only called once for the
 Interleaving client-side and server-side assertions
 --------------------------------------------------
 
-Sometimes it can be useful to first run some tests on the client, then after those are done, run some tests on the server to check whether the client calls correctly affected the backend storage. This can be done by interleaving client-side sub-tests with server-side sub-tests. We take the previous async test example and add a server-side sub-test between the existing two:
+Sometimes it can be useful to first run some tests on the client, then after those are done, run some tests on the server to check whether the client calls correctly affected the backend storage. This can be done by interleaving client-side sub-tests with server-side sub-tests. We take the previous async test example and add a server-side sub-test between the existing two using the `@runOnServer` decorator:
 
 ```coffeescript
   testClientFoo:
@@ -166,6 +166,8 @@ Sometimes it can be useful to first run some tests on the client, then after tho
 ```
 
 After the `first` method call completes, the second sub-test will be executed on the server and all assertions will be propagated back to the client.
+
+Another similar decorator is `@runOnBoth` which will behave the same as `@runOnServer` but will additionally also run the code on the client (in client-side tests) once it finishes executing on the server.
 
 Passing variables from server-side tests to client-side tests
 -------------------------------------------------------------
