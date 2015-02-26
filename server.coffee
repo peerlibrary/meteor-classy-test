@@ -9,6 +9,11 @@ Meteor.methods
   'classyTest.testCallable': (callableId) ->
     check callableId, Number
 
+    # If there are no tests defined on the server-side, then maybe the entire test
+    # definition has been limited to the client. In this case, we simply ignore
+    # all the server-only methods.
+    return [] unless ClassyTestCase._hasTests
+
     # This flag and future are needed because methods may be called multiple times
     # while another method is already running on the server. See the following
     # Meteor issue: https://github.com/meteor/meteor/issues/1285.

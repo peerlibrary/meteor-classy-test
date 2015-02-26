@@ -1,4 +1,6 @@
 class ClassyTestCase
+  # Flag whether there are any tests defined.
+  @_hasTests: false
   # Unique callable identifier.
   @_serverCallableId: 0
   # Callables.
@@ -18,6 +20,9 @@ class ClassyTestCase
   @addTest: (testCase) ->
     # Check if the test has a name defined.
     throw new Error "Test case must have a name defined." unless testCase.constructor.getTestName()
+
+    # Set a flag so that we know whether any tests have been defined.
+    ClassyTestCase._hasTests = true
 
     # Register the test case.
     for name, testFunction of testCase
