@@ -30,7 +30,7 @@ class ClassyTestCase
         testCase._processTestFunction testChain, testCase.setUpServer
         testCase._processTestFunction testChain, testCase.setUp
         testCase._processTestFunction testChain, testCase.setUpClient
-        testCase._processTestFunction testChain, testFunction
+        testCase._processTestFunction testChain, testCase._getTestFunction testFunction
         testCase._processTestFunction testChain, testCase.tearDownClient
         testCase._processTestFunction testChain, testCase.tearDownServer
         testCase._processTestFunction testChain, testCase.tearDown
@@ -48,6 +48,10 @@ class ClassyTestCase
 
         # Execute the test.
         testAsyncMulti "#{ testCase.constructor.getTestName() } - #{ name.slice(4) }", testChain
+
+  _getTestFunction: (testFunction) =>
+    # May be used to change what actually gets executed when running a test.
+    testFunction
 
   _processTestFunction: (testChain, testFunction) =>
     if _.isArray testFunction
