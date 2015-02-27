@@ -17,6 +17,9 @@ class ClassyTestCase
     @_test = null
     @_expect = null
 
+  @hasTests: ->
+    ClassyTestCase._hasTests
+
   @addTest: (testCase) ->
     # Check if the test has a name defined.
     throw new Error "Test case must have a name defined." unless testCase.constructor.getTestName()
