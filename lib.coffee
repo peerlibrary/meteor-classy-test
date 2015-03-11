@@ -50,12 +50,18 @@ class ClassyTestCase
           # Unsubscribe from everything the test cases subscribed to.
           @unsubscribeAll()
 
-        # Check for client- or server-only tests.
-        return if name.slice(0, 10) is 'testClient' and not Meteor.isClient
-        return if name.slice(0, 10) is 'testServer' and not Meteor.isServer
+        # Skip test cases that are not feasible in the current context.
+        return unless testCase._isTestFeasible name
 
         # Execute the test.
         testAsyncMulti "#{ testCase.constructor.getTestName() } - #{ name.slice(4) }", testChain
+
+  _isTestFeasible: (testName) =>
+    # Check for client- or server-only tests.
+    return false if testName.slice(0, 10) is 'testClient' and not Meteor.isClient
+    return false if testName.slice(0, 10) is 'testServer' and not Meteor.isServer
+
+    true
 
   _getTestFunction: (testFunction) =>
     # May be used to change what actually gets executed when running a test.
