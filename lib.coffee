@@ -5,6 +5,8 @@ class ClassyTestCase
   @_serverCallableId: 0
   # Callables.
   @_serverCallables: {}
+  # Test registry.
+  @_testRegistry: {}
 
   constructor: ->
     # Tag server-specific setup/tear down methods so they always run on the server.
@@ -20,12 +22,18 @@ class ClassyTestCase
   @hasTests: ->
     ClassyTestCase._hasTests
 
+  @getTest: (name) ->
+    ClassyTestCase._testRegistry[name]
+
   @addTest: (testCase) ->
     # Check if the test has a name defined.
-    throw new Error "Test case must have a name defined." unless testCase.constructor.getTestName()
+    throw new Error "Test case must have a name defined." unless testCase.getTestName()
+
+    throw new Error "Test case name must be unique." if ClassyTestCase._testRegistry[testCase.getTestName()]
 
     # Set a flag so that we know whether any tests have been defined.
     ClassyTestCase._hasTests = true
+    ClassyTestCase._testRegistry[testCase.getTestName()] = testCase
 
     # Register the test case.
     for name, testFunction of testCase
@@ -54,7 +62,7 @@ class ClassyTestCase
         return unless testCase._isTestFeasible name
 
         # Execute the test.
-        testAsyncMulti "#{ testCase.constructor.getTestName() } - #{ name.slice(4) }", testChain
+        testAsyncMulti "#{ testCase.getTestName() } - #{ name.slice(4) }", testChain
 
   _isTestFeasible: (testName) =>
     # Check for client- or server-only tests.
@@ -116,6 +124,9 @@ class ClassyTestCase
 
   @getTestName: ->
     @testName
+
+  getTestName: =>
+    @constructor.getTestName()
 
   @runOnServer: (callable) ->
     # Mark the callable for running on the server.
