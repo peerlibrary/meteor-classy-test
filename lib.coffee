@@ -36,7 +36,11 @@ class ClassyTestCase
     ClassyTestCase._testRegistry[testCase.getTestName()] = testCase
 
     # Register the test case.
-    for name, testFunction of testCase
+    keys = (keys for keys, method of testCase)
+    for name in _.sortBy(keys, (name) -> testCase?[name]?.order ? 100)
+      testFunction = testCase[name]
+      delete testFunction?.order
+
       do (name, testFunction) =>
         return unless name.slice(0, 4) is 'test'
         return unless _.isFunction(testFunction) or _.isArray(testFunction)
