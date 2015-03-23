@@ -91,7 +91,9 @@ class ClassyTestCase
           @_test = test
           @_expect = expect
 
-          testItem.call @
+          # Ensure that all tests execute non-reactively.
+          Tracker.nonreactive =>
+            testItem.call @
 
         boundItem.testCase = @
 

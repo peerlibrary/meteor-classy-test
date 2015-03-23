@@ -1,7 +1,7 @@
 Package.describe({
   name: 'peerlibrary:classy-test',
   summary: "Class-based wrapper around tinytest",
-  version: '0.2.8',
+  version: '0.2.9',
   git: 'https://github.com/peerlibrary/meteor-classy-test.git'
 });
 
@@ -12,7 +12,8 @@ Package.onUse(function (api) {
   api.use([
     'underscore',
     'coffeescript',
-    'tinytest'
+    'tinytest',
+    'tracker'
   ]);
 
   api.export('ClassyTestCase');
