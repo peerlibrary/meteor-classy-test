@@ -210,3 +210,8 @@ So before the test starts we create a test fixture on the server and would then 
 In the background, the test framework will seamlessly transfer the variables between the tests. Note that as variables are transferred via DDP, they must be EJSON serializable.
 
 Currently the variables may only be transferred from server-side tests to client-side tests and not vice-versa. In the future this limitation might be lifted.
+
+Miscellaneous methods
+---------------------
+
+You can use `@subscribe` to subscribe to Meteor publish endpoint in a way which automatically unsubscribes on test tear down. You can use `@unsubscribeAll` to force unsubscribing all subscriptions immediatelly.
