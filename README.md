@@ -128,12 +128,12 @@ In the second case, the test should not be defined as a method, but rather as an
       ->
         # Call the first method.
         Meteor.call 'first', 'argument', @expect (error, result) =>
-          @assertIsFalse error, "Error while calling first: #{ error }"
+          @assertFalse error, "Error while calling first: #{ error }"
     ,
       ->
         # Call the second method.
         Meteor.call 'second', 'argument', @expect (error, result) =>
-          @assertIsFalse error, "Error while calling second: #{ error }"
+          @assertFalse error, "Error while calling second: #{ error }"
     ]
 ```
 
@@ -152,7 +152,7 @@ Sometimes it can be useful to first run some tests on the client, then after tho
       ->
         # Call the first method.
         Meteor.call 'first', 'argument', @expect (error, result) =>
-          @assertIsFalse error, "Error while calling first: #{ error }"
+          @assertFalse error, "Error while calling first: #{ error }"
     ,
       @runOnServer ->
         # Check if the first method really cleared everything in Foo collection.
@@ -161,7 +161,7 @@ Sometimes it can be useful to first run some tests on the client, then after tho
       ->
         # Call the second method.
         Meteor.call 'second', 'argument', @expect (error, result) =>
-          @assertIsFalse error, "Error while calling second: #{ error }"
+          @assertFalse error, "Error while calling second: #{ error }"
     ]
 ```
 
@@ -185,7 +185,7 @@ Sometimes there is the need of passing variables from server-side tests for use 
 
   testClientRemoval: =>
     Meteor.call 'remove', @testDocumentId, @expect (error, result) =>
-      @assertIsFalse error, "Error while remove: #{ error }"
+      @assertFalse error, "Error while remove: #{ error }"
 ```
 
 So before the test starts we create a test fixture on the server and would then like to reference its `_id` on the client. The problem is that this will not work as the test case instance on the server differs from the one on the client and `@testDocumentId` will not be available there. In order to address this, classy tests support passing specific variables from server-side tests to client-side tests using `@get` and `@set` methods. In order to fix the above example we can do:
@@ -204,7 +204,7 @@ So before the test starts we create a test fixture on the server and would then 
 
   testClientRemoval: =>
     Meteor.call 'remove', @get('testDocumentId'), @expect (error, result) =>
-      @assertIsFalse error, "Error while remove: #{ error }"
+      @assertFalse error, "Error while remove: #{ error }"
 ```
 
 In the background, the test framework will seamlessly transfer the variables between the tests. Note that as variables are transferred via DDP, they must be EJSON serializable.
