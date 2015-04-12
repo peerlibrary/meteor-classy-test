@@ -61,6 +61,9 @@ class ClassyTestCase
 
           # Unsubscribe from everything the test cases subscribed to.
           @unsubscribeAll()
+          # Stop all reactive computations.
+          computation.stop() for computation in @_computations ? []
+          @_computations = []
 
         # Skip test cases that are not feasible in the current context.
         return unless testCase._isTestFeasible name
@@ -344,13 +347,15 @@ class ClassyTestCase
 
   subscribe: (args...) =>
     # Store subscription so we can unsubscribe from everything on tear down.
-    @subscriptions ?= []
-    @subscriptions.push Meteor.subscribe args...
+    @_subscriptions ?= []
+    @_subscriptions.push Meteor.subscribe args...
 
   unsubscribeAll: =>
-    return unless _.isArray @subscriptions
-
     # Unsubscribe from everything the test cases subscribed to.
-    subscription.stop() for subscription in @subscriptions
+    subscription.stop() for subscription in @_subscriptions ? []
+    @_subscriptions = []
 
-    @subscriptions = []
+  autorun: (handler) =>
+    @_computations ?= []
+    @_computations.push Tracker.autorun =>
+      handler.apply @, arguments
