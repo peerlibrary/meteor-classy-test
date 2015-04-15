@@ -6,13 +6,14 @@ testControl = null
 
 # Define server-side methods.
 Meteor.methods
-  'classyTest.testCallable': (callableId) ->
+  'classyTest.testCallable': (testName, callableId) ->
+    check testName, String
     check callableId, Number
 
     # If there are no tests defined on the server-side, then maybe the entire test
     # definition has been limited to the client. In this case, we simply ignore
     # all the server-only methods.
-    return [] unless ClassyTestCase.hasTests()
+    return [] unless ClassyTestCase.getTest testName
 
     # This flag and future are needed because methods may be called multiple times
     # while another method is already running on the server. See the following
