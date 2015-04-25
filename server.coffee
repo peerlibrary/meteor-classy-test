@@ -6,9 +6,10 @@ testControl = null
 
 # Define server-side methods.
 Meteor.methods
-  'classyTest.testCallable': (testName, callableId) ->
+  'classyTest.testCallable': (testName, callableId, exportedVariables) ->
     check testName, String
     check callableId, Number
+    check exportedVariables, Object
 
     # If there are no tests defined on the server-side, then maybe the entire test
     # definition has been limited to the client. In this case, we simply ignore
@@ -49,6 +50,8 @@ Meteor.methods
     try
       isInTestControl = true
       testControl = new Future()
+      # Set exported variables when defined.
+      callable.testCase.exportedVariables = exportedVariables
       # There is no need to bind 'this' here as it has already been bound when registering.
       callable test
       # If any variables have been exported, send them to the client.

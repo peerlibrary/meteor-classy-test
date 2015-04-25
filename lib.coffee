@@ -108,7 +108,9 @@ class ClassyTestCase
           else
             # Call the callable via a method on the client.
             testChain.push (test, expect) =>
-              Meteor.call 'classyTest.testCallable', @getTestName(), testItem.serverCallableId, expect (error, result) =>
+              exportedVariables = @exportedVariables ? {}
+
+              Meteor.call 'classyTest.testCallable', @getTestName(), testItem.serverCallableId, exportedVariables, expect (error, result) =>
                 # Handle internal errors.
                 test.isUndefined error, "Server-side callable test failed: #{ error }"
                 return unless _.isUndefined error
