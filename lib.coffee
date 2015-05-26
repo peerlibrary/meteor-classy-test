@@ -47,6 +47,9 @@ class ClassyTestCase
 
         # Extract server-side callables from client functions.
         testChain = []
+        testCase._processTestFunction testChain, ->
+          # Initialize exported variables.
+          @exportedVariables = null
         testCase._processTestFunction testChain, testCase.setUpServer
         testCase._processTestFunction testChain, testCase.setUp
         testCase._processTestFunction testChain, testCase.setUpClient
@@ -103,7 +106,8 @@ class ClassyTestCase
         if testItem.runOnServer
           if Meteor.isServer
             # Register callable on the server.
-            ClassyTestCase._serverCallables[testItem.serverCallableId] = boundItem
+            callables = ClassyTestCase._serverCallables[@getTestName()] ?= {}
+            callables[testItem.serverCallableId] = boundItem
             testChain.push boundItem
           else
             # Call the callable via a method on the client.
@@ -305,6 +309,7 @@ class ClassyTestCase
         callback?()
 
   expect: (args...) =>
+    throw new Error "Cannot call expect outside a test case." unless @_expect
     @_expect args...
 
   switchUser: (username, password, callback) =>

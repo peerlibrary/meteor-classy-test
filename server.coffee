@@ -23,7 +23,7 @@ Meteor.methods
       testControl.wait()
       return testControl.get()
 
-    callable = ClassyTestCase._serverCallables[callableId]
+    callable = ClassyTestCase._serverCallables?[testName]?[callableId]
     throw new Meteor.Error 'callable-not-found', "Server callable #{ callableId } cannot be found." unless callable
 
     # Create a virtual test case.
