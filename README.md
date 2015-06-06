@@ -27,6 +27,8 @@ Each test case is a class extending from `ClassyTestCase` as follows:
 class SimpleTestCase extends ClassyTestCase
   # Define the test case name (required).
   @testName: 'Simple'
+  # Define the timeout in milliseconds (optional).
+  @testTimeout: 200000
 
   testThatTrueIsTrue: =>
     @assertTrue true, "True should be true."
@@ -39,6 +41,10 @@ ClassyTestCase.addTest new SimpleTestCase()
 ```
 
 This simple test case definition will generate two tests via tinytest, the first will be called `Simple - ThatTrueIsTrue` and the second one `Simple - ThatFalseIsFalse`.
+
+The `addTest` method also takes an optional second argument called `options`, which should contain an object specifying any custom options. The following options are supported:
+
+ * `mustFail` should be set to `true` in case the test case must fail in order for it to be marked as passed.
 
 Assertions
 ----------

@@ -53,7 +53,12 @@ Meteor.methods
       # Set exported variables when defined.
       callable.testCase.exportedVariables = exportedVariables
       # There is no need to bind 'this' here as it has already been bound when registering.
-      callable test
+      originalTest = callable.testCase._internal.test
+      callable.testCase._internal.test = test
+      try
+        callable()
+      finally
+        callable.testCase._internal.test = originalTest
       # If any variables have been exported, send them to the client.
       if callable.testCase.exportedVariables
         exportEvent =

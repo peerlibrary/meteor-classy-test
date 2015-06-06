@@ -1,7 +1,7 @@
 Package.describe({
   name: 'peerlibrary:classy-test',
   summary: "Class-based wrapper around tinytest",
-  version: '0.2.13',
+  version: '0.2.14',
   git: 'https://github.com/peerlibrary/meteor-classy-test.git'
 });
 
@@ -21,9 +21,6 @@ Package.onUse(function (api) {
 
   // Client and server.
   api.addFiles([
-    // TODO: This include is needed as test-helpers only export asyncMulti to tests.
-    // See pull request: https://github.com/meteor/meteor/pull/3494
-    'meteor/packages/test-helpers/async_multi.js',
     // TODO: This include is needed as Tinytest does not export TestCaseResults.
     // See pull request: https://github.com/meteor/meteor/pull/3541
     'meteor/packages/tinytest/tinytest.js',
