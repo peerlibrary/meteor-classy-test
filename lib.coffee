@@ -68,9 +68,9 @@ class ClassyTestCase
   constructor: ->
     # Tag server-specific setup/tear down methods so they always run on the server.
     ClassyTestCase.runOnServer @setUpServer
-    ClassyTestCase.runOnServer @setUp
+    ClassyTestCase.runOnBoth @setUp
     ClassyTestCase.runOnServer @tearDownServer
-    ClassyTestCase.runOnServer @tearDown
+    ClassyTestCase.runOnBoth @tearDown
 
   @hasTests: ->
     ClassyTestCase._hasTests
