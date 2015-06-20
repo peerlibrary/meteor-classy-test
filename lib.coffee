@@ -462,6 +462,17 @@ class ClassyTestCase
 
     @_internal.expectationManager.expect args...
 
+  expectWithTimeout: (timeout, message, callback) ->
+    next = @expect (ok) =>
+      Meteor.clearTimeout handle if handle
+      @assertTrue ok, "Expectation timed out: #{message}"
+
+    handle = Meteor.setTimeout next, timeout
+
+    ->
+      next true
+      callback.apply @, arguments if callback
+
   switchUser: (username, password, callback) =>
     # Stop all subscriptions to prevent errors while switching users.
     @unsubscribeAll()

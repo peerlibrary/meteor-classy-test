@@ -124,7 +124,7 @@ Asynchronous tests
 Tests can be specified in two ways:
 
  * A single test method as in the above examples. When such a test method finishes, the test is deemed complete and the respective tear down methods will run.
- * Test containing multiple steps where each step is only deemed complete after certain callbacks get called. This is similar to `testAsyncMulti` from `test-helpers` (actually `testAsyncMulti` is used in the background to make this work).
+ * Test containing multiple steps where each step is only deemed complete after certain callbacks get called. This is similar to `testAsyncMulti` from `test-helpers`.
 
 In the second case, the test should not be defined as a method, but rather as an array of functions like in the following example:
 
@@ -144,6 +144,8 @@ In the second case, the test should not be defined as a method, but rather as an
 ```
 
 This defines a chain of sub-tests where the next case will only get executed once all the *expected* callbacks are run. In order to define which callbacks are expected one should use the `@expect(fun)` method which takes a function argument and returns a wrapper function that will mark the callback as called. When all expected callbacks are called, the execution will proceed to the next sub-test in the chain.
+
+Often one would like to abort the test early in case an expectation handler does not get called in a specified amount of time. In this case one may use the `@expectWithTimeout(timeout, message, fun)` method where the `timeout` argument specifies the timeout in milliseconds, the `message` specifies what should be displayed when a timeout occurs and `fun` is a callback similar to the normal `@expect(fun)` call.
 
 Note that in this case set up and tear down methods are only called once for the whole test and not in-between sub-tests.
 
