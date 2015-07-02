@@ -137,9 +137,9 @@ class ClassyTestCase
 
         testCase._processTestFunction testChain, testCase.setUpServer
         testCase._processTestFunction testChain, testCase.setUp
-        testCase._processTestFunction testChain, testCase.setUpClient
+        testCase._processTestFunction testChain, testCase.setUpClient if Meteor.isClient
         testCase._processTestFunction testChain, testCase._getTestFunction testFunction
-        testCase._processTestFunction testChain, testCase.tearDownClient
+        testCase._processTestFunction testChain, testCase.tearDownClient if Meteor.isClient
         testCase._processTestFunction testChain, testCase.tearDownServer
         testCase._processTestFunction testChain, testCase.tearDown
         testCase._processTestFunction testChain, ->
