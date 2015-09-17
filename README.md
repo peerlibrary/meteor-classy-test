@@ -30,10 +30,10 @@ class SimpleTestCase extends ClassyTestCase
   # Define the timeout in milliseconds (optional).
   @testTimeout: 200000
 
-  testThatTrueIsTrue: =>
+  testThatTrueIsTrue: ->
     @assertTrue true, "True should be true."
 
-  testThatFalseIsFalse: =>
+  testThatFalseIsFalse: ->
     @assertFalse false, "False should be false."
 
 # Register the test case.
@@ -77,7 +77,7 @@ Classy test assertions are named slightly differently than in tinytest, but are 
 As mentioned, all assertions are methods and may be called on `this`:
 
 ```coffeescript
-  testFoo: =>
+  testFoo: ->
     @assertEqual foo, bar, "Foo must be equal to bar."
     @assertLengthOf [1,1,1], 3
     # ...
@@ -183,7 +183,7 @@ Passing variables from server-side tests to client-side tests
 Sometimes there is the need of passing variables from server-side tests for use in client-side tests, usually when defining fixtures in `setUp` methods. Consider this *non-working example*:
 
 ```coffeescript
-  setUpServer: =>
+  setUpServer: ->
     # Initialize the database.
     Foo.remove {}
 
@@ -191,7 +191,7 @@ Sometimes there is the need of passing variables from server-side tests for use 
     @testDocumentId = Foo.insert
       bar: true
 
-  testClientRemoval: =>
+  testClientRemoval: ->
     Meteor.call 'remove', @testDocumentId, @expect (error, result) =>
       @assertFalse error, "Error while remove: #{ error }"
 ```
@@ -199,7 +199,7 @@ Sometimes there is the need of passing variables from server-side tests for use 
 So before the test starts we create a test fixture on the server and would then like to reference its `_id` on the client. The problem is that this will not work as the test case instance on the server differs from the one on the client and `@testDocumentId` will not be available there. In order to address this, classy tests support passing specific variables from server-side tests to client-side tests using `@get` and `@set` methods. In order to fix the above example we can do:
 
 ```coffeescript
-  setUpServer: =>
+  setUpServer: ->
     # Initialize the database.
     Foo.remove {}
 
@@ -210,7 +210,7 @@ So before the test starts we create a test fixture on the server and would then 
     # Pass variable to client-side tests.
     @set 'testDocumentId', testDocumentId
 
-  testClientRemoval: =>
+  testClientRemoval: ->
     Meteor.call 'remove', @get('testDocumentId'), @expect (error, result) =>
       @assertFalse error, "Error while remove: #{ error }"
 ```
