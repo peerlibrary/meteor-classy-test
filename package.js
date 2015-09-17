@@ -14,7 +14,9 @@ Package.onUse(function (api) {
     'coffeescript',
     'tinytest',
     'tracker',
-    'ddp'
+    'ddp',
+    'check',
+    'random'
   ]);
 
   api.export('ClassyTestCase');
