@@ -12,7 +12,7 @@ class ExpectationManager
     @outstanding++
 
     # Return an expectation handler.
-    =>
+    Meteor.bindEnvironment =>
       return if @dead
 
       if typeof expected is 'function'
@@ -26,6 +26,8 @@ class ExpectationManager
       # One less outstanding call, check if we are done.
       @outstanding--
       @_checkComplete()
+    ,
+      'expect'
 
   done: ->
     @closed = true
