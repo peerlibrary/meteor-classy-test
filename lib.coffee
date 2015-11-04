@@ -527,5 +527,4 @@ class ClassyTestCase
 
   autorun: (handler) =>
     @_internal.computations ?= []
-    @_internal.computations.push Tracker.autorun =>
-      handler.apply @, arguments
+    @_internal.computations.push Tracker.autorun _.bind handler, @
