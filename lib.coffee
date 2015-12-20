@@ -516,9 +516,13 @@ class ClassyTestCase
     @exportedVariables?[name]
 
   subscribe: (args...) =>
+    subscription = Meteor.subscribe args...
+
     # Store subscription so we can unsubscribe from everything on tear down.
     @_internal.subscriptions ?= []
-    @_internal.subscriptions.push Meteor.subscribe args...
+    @_internal.subscriptions.push subscription
+
+    subscription
 
   unsubscribeAll: =>
     # Unsubscribe from everything the test cases subscribed to.
@@ -526,5 +530,9 @@ class ClassyTestCase
     @_internal.subscriptions = []
 
   autorun: (handler) =>
+    computation = Tracker.autorun _.bind handler, @
+
     @_internal.computations ?= []
-    @_internal.computations.push Tracker.autorun _.bind handler, @
+    @_internal.computations.push computation
+
+    computation
