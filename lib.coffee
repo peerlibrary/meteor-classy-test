@@ -74,6 +74,19 @@ class ClassyTestCase
     ClassyTestCase.runOnServer @tearDownServer
     ClassyTestCase.runOnBoth @tearDown
 
+    # Test-local internal variables.
+    @_internal = {}
+
+    if Meteor.isClient
+      # Capture uncaught exceptions.
+      originalOnError = window.onerror
+      window.onerror = (args...) =>
+        @_onError args...
+        originalOnError.apply @, args if originalOnError
+
+      @_internal.capturedErrors = []
+      @_internal.currentErrors = 0
+
   @hasTests: ->
     ClassyTestCase._hasTests
 
@@ -90,9 +103,7 @@ class ClassyTestCase
     ClassyTestCase._hasTests = true
     ClassyTestCase._testRegistry[testCase.getTestName()] = testCase
 
-    # Setup test-local internal variables.
-    testCase._internal =
-      options: options
+    testCase._internal.options = options
 
     # Register the test case.
     keys = (keys for keys, method of testCase)
@@ -137,6 +148,11 @@ class ClassyTestCase
 
               @_internal.test.originalOnEvent event
 
+        # Prepare uncaught exceptions capture.
+        if Meteor.isClient
+          testCase._processTestFunction testChain, ->
+            @_internal.currentErrors = @_internal.capturedErrors.length
+
         testCase._processTestFunction testChain, testCase.setUpServer
         testCase._processTestFunction testChain, testCase.setUp
         testCase._processTestFunction testChain, testCase.setUpClient if Meteor.isClient
@@ -145,6 +161,14 @@ class ClassyTestCase
         testCase._processTestFunction testChain, testCase.tearDownServer
         testCase._processTestFunction testChain, testCase.tearDown
         testCase._processTestFunction testChain, ->
+          if Meteor.isClient
+            # Check if there were any uncaught exceptions while testing.
+            for {errorMessage, url, lineNumber, columnNumber, errorObject} in @_internal.capturedErrors[@_internal.currentErrors..]
+              @_internal.test.fail
+                type: 'uncaught_exception'
+                message: errorMessage
+                stack: errorObject.stack
+
           # Ensure that the test failed if it was registered as a failing test.
           if @_internal.options.mustFail
             # Restore exception and event handlers.
@@ -281,6 +305,10 @@ class ClassyTestCase
               testChain.push boundItem
         else
           testChain.push boundItem
+
+  # Process uncaught exceptions.
+  _onError: (errorMessage, url, lineNumber, columnNumber, errorObject) ->
+    @_internal.capturedErrors.push {errorMessage, url, lineNumber, columnNumber, errorObject}
 
   @getTestName: ->
     @testName
