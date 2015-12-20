@@ -71,6 +71,7 @@ Classy test assertions are named slightly differently than in tinytest, but are 
  * `assertItemsEqual(actual, expected)` asserts that arrays `actual` and `expected` contain the same elements (disregarding their order).
  * `assertObjectContainsSubset(actual, expected)` asserts that the key/value pairs in an object `actual` are a (non-strict) superset of those in `expected`.
  * `assertLengthOf(array, length, message)` asserts that the length of `array` is `length`.
+ * `assertFail({type, message, stack})` asserts a failure.
  * `assertSubscribeSuccessful(endpoint, args..., callback)` asserts that subscription to Meteor endpoint `endpoint` using arguments `args...` is successful. This is an async assertion where `callback` is called after evaluation is completed.
  * `assertSubscribeFails(endpoint, args..., callback)` asserts that subscription to Meteor endpoint `endpoint` using arguments `args...` fails with an error. This is an async assertion where `callback` is called after evaluation is completed.
 
