@@ -117,7 +117,7 @@ class ClassyTestCase
             @_internal.test.originalOnEvent = @_internal.test.onEvent
 
             @_internal.test.onException = (exception) =>
-              # We must supress exceptions. Report them as expected test failures.
+              # We must suppress exceptions. Report them as expected test failures.
               @_internal.hasFailures = true
               @_internal.test.originalOnEvent
                 type: 'expected_fail'
