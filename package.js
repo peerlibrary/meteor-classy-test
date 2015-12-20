@@ -16,7 +16,8 @@ Package.onUse(function (api) {
     'tracker',
     'ddp',
     'check',
-    'random'
+    'random',
+	'ejson'
   ]);
 
   api.export('ClassyTestCase');
