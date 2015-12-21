@@ -463,10 +463,10 @@ class ClassyTestCase
       onReady: =>
         @assertTrue true
         callback?()
-      onError: =>
+      onError: (error) =>
         @assertFail
           type: 'subscribe'
-          message: "Subscrption to endpoint failed, but should have succeeded."
+          message: "Subscrption to endpoint failed, but should have succeeded: #{error}"
         callback?()
 
   assertSubscribeFails: (endpoint, args..., callback) =>
