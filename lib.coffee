@@ -167,7 +167,7 @@ class ClassyTestCase
               @_internal.test.fail
                 type: 'uncaught_exception'
                 message: errorMessage
-                stack: errorObject.stack
+                stack: errorObject?.stack
 
           # Ensure that the test failed if it was registered as a failing test.
           if @_internal.options.mustFail
