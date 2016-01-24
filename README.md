@@ -130,18 +130,17 @@ Tests can be specified in two ways:
 In the second case, the test should not be defined as a method, but rather as an array of functions like in the following example:
 
 ```coffeescript
-  testClientFoo:
-    [
-      ->
-        # Call the first method.
-        Meteor.call 'first', 'argument', @expect (error, result) =>
-          @assertFalse error, "Error while calling first: #{ error }"
-    ,
-      ->
-        # Call the second method.
-        Meteor.call 'second', 'argument', @expect (error, result) =>
-          @assertFalse error, "Error while calling second: #{ error }"
-    ]
+  testClientFoo: [
+    ->
+      # Call the first method.
+      Meteor.call 'first', 'argument', @expect (error, result) =>
+        @assertFalse error, "Error while calling first: #{ error }"
+  ,
+    ->
+      # Call the second method.
+      Meteor.call 'second', 'argument', @expect (error, result) =>
+        @assertFalse error, "Error while calling second: #{ error }"
+  ]
 ```
 
 This defines a chain of sub-tests where the next case will only get executed once all the *expected* callbacks are run. In order to define which callbacks are expected one should use the `@expect(fun)` method which takes a function argument and returns a wrapper function that will mark the callback as called. When all expected callbacks are called, the execution will proceed to the next sub-test in the chain.
@@ -156,22 +155,21 @@ Interleaving client-side and server-side assertions
 Sometimes it can be useful to first run some tests on the client, then after those are done, run some tests on the server to check whether the client calls correctly affected the backend storage. This can be done by interleaving client-side sub-tests with server-side sub-tests. We take the previous async test example and add a server-side sub-test between the existing two using the `@runOnServer` decorator:
 
 ```coffeescript
-  testClientFoo:
-    [
-      ->
-        # Call the first method.
-        Meteor.call 'first', 'argument', @expect (error, result) =>
-          @assertFalse error, "Error while calling first: #{ error }"
-    ,
-      @runOnServer ->
-        # Check if the first method really cleared everything in Foo collection.
-        @assertEqual Foo.find().count(), 0
-    ,
-      ->
-        # Call the second method.
-        Meteor.call 'second', 'argument', @expect (error, result) =>
-          @assertFalse error, "Error while calling second: #{ error }"
-    ]
+  testClientFoo: [
+    ->
+      # Call the first method.
+      Meteor.call 'first', 'argument', @expect (error, result) =>
+        @assertFalse error, "Error while calling first: #{ error }"
+  ,
+    @runOnServer ->
+      # Check if the first method really cleared everything in Foo collection.
+      @assertEqual Foo.find().count(), 0
+  ,
+    ->
+      # Call the second method.
+      Meteor.call 'second', 'argument', @expect (error, result) =>
+        @assertFalse error, "Error while calling second: #{ error }"
+  ]
 ```
 
 After the `first` method call completes, the second sub-test will be executed on the server and all assertions will be propagated back to the client.
