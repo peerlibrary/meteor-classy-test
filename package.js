@@ -1,7 +1,7 @@
 Package.describe({
   name: 'peerlibrary:classy-test',
   summary: "Class-based wrapper around tinytest",
-  version: '0.2.25',
+  version: '0.2.26',
   git: 'https://github.com/peerlibrary/meteor-classy-test.git'
 });
 
