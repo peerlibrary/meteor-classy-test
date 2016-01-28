@@ -1,4 +1,4 @@
-class ExpectationManager
+class share.ExpectationManager
   constructor: (@test, @onComplete) ->
     @closed = false
     @dead = false
@@ -212,7 +212,7 @@ class ClassyTestCase
               return
 
             # Create a new expectation manager with a specific completion handler.
-            expectationManager = new ExpectationManager test, =>
+            expectationManager = new share.ExpectationManager test, =>
               Meteor.clearTimeout timer
               # Each function is assigned a new expectation manager, so we clear the current one.
               testCase._internal.expectationManager = null

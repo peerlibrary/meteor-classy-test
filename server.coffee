@@ -55,8 +55,33 @@ Meteor.methods
       # There is no need to bind 'this' here as it has already been bound when registering.
       originalTest = callable.testCase._internal.test
       callable.testCase._internal.test = test
+
+      # Create a new expectation manager with a specific completion handler.
+      expectationFuture = new Future()
+      expectationManager = new share.ExpectationManager test, =>
+        Meteor.clearTimeout timer
+        # Each function is assigned a new expectation manager, so we clear the current one.
+        callable.testCase._internal.expectationManager = null
+        # Resolve the future.
+        expectationFuture.return()
+      # Bind the expectation handler.
+      callable.testCase._internal.expectationManager = expectationManager
+
+      # Ensure that tests time out if they run for too long.
+      timer = Meteor.setTimeout =>
+        if expectationManager.cancel()
+          test.fail
+            type: 'timeout'
+            message: 'Test case timed out.'
+          # Abort the test immediately.
+          expectationFuture.return()
+      ,
+        callable.testCase.constructor.testTimeout
+
       try
         callable()
+        expectationManager.done()
+        expectationFuture.wait() unless expectationManager.dead
       finally
         callable.testCase._internal.test = originalTest
       # If any variables have been exported, send them to the client.
