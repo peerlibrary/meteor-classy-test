@@ -17,7 +17,7 @@ Package.onUse(function (api) {
     'ddp',
     'check',
     'random',
-	'ejson'
+    'ejson'
   ]);
 
   api.export('ClassyTestCase');
