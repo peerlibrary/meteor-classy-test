@@ -1,1 +1,0 @@
-Tinytest = Package.tinytest.Tinytest;

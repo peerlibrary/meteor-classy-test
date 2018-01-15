@@ -1,4 +1,12 @@
-class share.ExpectationManager
+getAllPropertyNames = (obj) ->
+  names = new Set()
+  while obj
+    for name in Object.getOwnPropertyNames(obj)
+      names.add(name)
+    obj = Object.getPrototypeOf(obj)
+  Array.from(names.values())
+
+export class ExpectationManager
   constructor: (@test, @onComplete) ->
     @closed = false
     @dead = false
@@ -6,22 +14,22 @@ class share.ExpectationManager
     @outstanding = 0
     @exceptionAlreadyCanceled = false
 
-  expect: ->
-    expected = if typeof arguments[0] is 'function' then arguments[0] else _.toArray arguments
+  expect: (args...) ->
+    expected = if typeof args[0] is 'function' then args[0] else args
     throw new Error "Too late to add more expectations to the test." if @closed
     @outstanding++
 
     # Return an expectation handler.
-    Meteor.bindEnvironment =>
+    Meteor.bindEnvironment (args...) =>
       return if @dead
 
       if typeof expected is 'function'
         try
-          expected.apply {}, arguments
+          expected.apply {}, args
         catch error
           @exception error
       else
-        @test.equal _.toArray(arguments), expected
+        @test.equal args, expected
 
       # One less outstanding call, check if we are done.
       @outstanding--
@@ -50,7 +58,7 @@ class share.ExpectationManager
       @dead = true
       @onComplete()
 
-class ClassyTestCase
+export class ClassyTestCase
   ### Test case configuration ###
 
   # Number of milliseconds after which the test case must complete. Otherwise it will be aborted.
@@ -106,7 +114,7 @@ class ClassyTestCase
     testCase._internal.options = options
 
     # Register the test case.
-    keys = (keys for keys, method of testCase)
+    keys = getAllPropertyNames testCase
     for name in _.sortBy(keys, (name) -> testCase?[name]?.order ? 100)
       testFunction = testCase[name]
       delete testFunction?.order
@@ -212,7 +220,7 @@ class ClassyTestCase
               return
 
             # Create a new expectation manager with a specific completion handler.
-            expectationManager = new share.ExpectationManager test, =>
+            expectationManager = new ExpectationManager test, =>
               Meteor.clearTimeout timer
               # Each function is assigned a new expectation manager, so we clear the current one.
               testCase._internal.expectationManager = null
@@ -246,18 +254,18 @@ class ClassyTestCase
 
           runNext()
 
-  _isTestFeasible: (testName) =>
+  _isTestFeasible: (testName) ->
     # Check for client- or server-only tests.
     return false if testName.slice(0, 10) is 'testClient' and not Meteor.isClient
     return false if testName.slice(0, 10) is 'testServer' and not Meteor.isServer
 
     true
 
-  _getTestFunction: (testFunction) =>
+  _getTestFunction: (testFunction) ->
     # May be used to change what actually gets executed when running a test.
     testFunction
 
-  _processTestFunction: (testChain, testFunction) =>
+  _processTestFunction: (testChain, testFunction) ->
     if _.isArray testFunction
       testBody = testFunction
     else
@@ -313,7 +321,7 @@ class ClassyTestCase
   @getTestName: ->
     @testName
 
-  getTestName: =>
+  getTestName: ->
     @constructor.getTestName()
 
   @runOnServer: (callable) ->
@@ -327,16 +335,16 @@ class ClassyTestCase
     callable.runOnBoth = true
     @runOnServer callable
 
-  assertEqual: (actual, expected, message) =>
+  assertEqual: (actual, expected, message) ->
     @_internal.test.equal actual, expected, message
 
-  assertNotEqual: (actual, expected, message) =>
+  assertNotEqual: (actual, expected, message) ->
     @_internal.test.notEqual actual, expected, message
 
-  assertInstanceOf: (obj, klass) =>
+  assertInstanceOf: (obj, klass) ->
     @_internal.test.instanceOf obj, klass
 
-  assertNotInstanceOf: (obj, klass) =>
+  assertNotInstanceOf: (obj, klass) ->
     if obj not instanceof klass
       @_internal.test.ok()
     else
@@ -344,10 +352,10 @@ class ClassyTestCase
         type: 'instanceOf'
         not: true
 
-  assertRegexpMatches: (actual, regexp, message) =>
+  assertRegexpMatches: (actual, regexp, message) ->
     @_internal.test.matches actual, regexp, message
 
-  assertNotRegexpMatches: (actual, regexp, message) =>
+  assertNotRegexpMatches: (actual, regexp, message) ->
     if not regexp.test actual
       this.ok()
     else
@@ -358,25 +366,25 @@ class ClassyTestCase
         regexp: regexp.toString()
         not: true
 
-  assertThrows: (func, expected) =>
+  assertThrows: (func, expected) ->
     @_internal.test.throws func, expected
 
-  assertTrue: (value, msg) =>
+  assertTrue: (value, msg) ->
     @_internal.test.isTrue value, msg
 
-  assertFalse: (value, msg) =>
+  assertFalse: (value, msg) ->
     @_internal.test.isFalse value, msg
 
-  assertIsNull: (value, msg) =>
+  assertIsNull: (value, msg) ->
     @_internal.test.isNull value, msg
 
-  assertIsNotNull: (value, msg) =>
+  assertIsNotNull: (value, msg) ->
     @_internal.test.isNotNull value, msg
 
-  assertIsUndefined: (value, msg) =>
+  assertIsUndefined: (value, msg) ->
     @_internal.test.isUndefined value, msg
 
-  assertIsNotUndefined: (value, msg) =>
+  assertIsNotUndefined: (value, msg) ->
     if value isnt undefined
       @_internal.test.ok()
     else
@@ -385,10 +393,10 @@ class ClassyTestCase
         message: msg
         not: true
 
-  assertIsNaN: (value, msg) =>
+  assertIsNaN: (value, msg) ->
     @_internal.test.isNaN value, msg
 
-  assertIsNotNaN: (value, msg) =>
+  assertIsNotNaN: (value, msg) ->
     if not isNaN v
       this.ok()
     else
@@ -397,10 +405,10 @@ class ClassyTestCase
         message: msg
         not: true
 
-  assertIn: (value, collection=[]) =>
+  assertIn: (value, collection=[]) ->
     @_internal.test.include collection, value
 
-  assertNotIn: (value, collection=[]) =>
+  assertNotIn: (value, collection=[]) ->
     # Same as @_internal.test.include implementation, just negated.
 
     pass = false
@@ -420,7 +428,7 @@ class ClassyTestCase
         should_contain_value: value
         not: true
 
-  assertItemsEqual: (actual, expected) =>
+  assertItemsEqual: (actual, expected) ->
     actual ||= []
     expected ||= []
 
@@ -437,7 +445,7 @@ class ClassyTestCase
         actual: JSON.stringify actual
         expected: JSON.stringify expected
 
-  assertObjectContainsSubset: (actual, expected) =>
+  assertObjectContainsSubset: (actual, expected) ->
     subset = ->
       for key, value of expected
         return false unless _.isEqual actual[key], value
@@ -451,13 +459,13 @@ class ClassyTestCase
         actual: JSON.stringify actual
         expected: JSON.stringify expected
 
-  assertLengthOf: (obj=[], expected, msg) =>
+  assertLengthOf: (obj=[], expected, msg) ->
     @_internal.test.length obj, expected, msg
 
-  assertFail: (doc) =>
+  assertFail: (doc) ->
     @_internal.test.fail doc
 
-  assertSubscribeSuccessful: (endpoint, args..., callback) =>
+  assertSubscribeSuccessful: (endpoint, args..., callback) ->
     # Try subscribing to the endpoint.
     @subscribe endpoint, args...,
       onReady: =>
@@ -469,7 +477,7 @@ class ClassyTestCase
           message: "Subscrption to endpoint failed, but should have succeeded: #{error}"
         callback?()
 
-  assertSubscribeFails: (endpoint, args..., callback) =>
+  assertSubscribeFails: (endpoint, args..., callback) ->
     # Try subscribing to the endpoint.
     @subscribe endpoint, args...,
       onReady: =>
@@ -481,13 +489,13 @@ class ClassyTestCase
         @assertTrue true
         callback?()
 
-  assertNextTestFails: =>
+  assertNextTestFails: ->
     @_internal.test.expect_fail()
 
-  exception: (error) =>
+  exception: (error) ->
     @_internal.test.exception error
 
-  expect: (args...) =>
+  expect: (args...) ->
     throw new Error "Cannot call expect outside a test case." unless @_internal.expectationManager
 
     @_internal.expectationManager.expect args...
@@ -499,11 +507,11 @@ class ClassyTestCase
 
     handle = Meteor.setTimeout next, timeout
 
-    ->
+    (args...) ->
       next true
-      callback.apply @, arguments if callback
+      callback.apply @, args if callback
 
-  switchUser: (username, password, callback) =>
+  switchUser: (username, password, callback) ->
     # Stop all subscriptions to prevent errors while switching users.
     @unsubscribeAll()
 
@@ -516,34 +524,34 @@ class ClassyTestCase
         @assertIsUndefined error, "User login failed: #{ error }"
         callback?()
 
-  setUp: =>
+  setUp: ->
     # Default implementation does nothing.
 
-  setUpServer: =>
+  setUpServer: ->
     # Default implementation does nothing.
 
-  setUpClient: =>
+  setUpClient: ->
     # Default implementation does nothing.
 
-  tearDown: =>
+  tearDown: ->
     # Default implementation does nothing.
 
-  tearDownServer: =>
+  tearDownServer: ->
     # Default implementation does nothing.
 
-  tearDownClient: =>
+  tearDownClient: ->
     # Default implementation does nothing.
 
-  set: (name, value) =>
+  set: (name, value) ->
     # Exports the variable to other tests.
     @exportedVariables ?= {}
     @exportedVariables[name] = value
 
-  get: (name) =>
+  get: (name) ->
     # Retrieves a previously set variable.
     @exportedVariables?[name]
 
-  subscribe: (args...) =>
+  subscribe: (args...) ->
     subscription = Meteor.subscribe args...
 
     # Store subscription so we can unsubscribe from everything on tear down.
@@ -552,12 +560,12 @@ class ClassyTestCase
 
     subscription
 
-  unsubscribeAll: =>
+  unsubscribeAll: ->
     # Unsubscribe from everything the test cases subscribed to.
     subscription.stop() for subscription in @_internal.subscriptions ? []
     @_internal.subscriptions = []
 
-  autorun: (handler) =>
+  autorun: (handler) ->
     computation = Tracker.autorun _.bind handler, @
 
     @_internal.computations ?= []

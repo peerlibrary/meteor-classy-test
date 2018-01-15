@@ -1,4 +1,6 @@
-Future = Npm.require 'fibers/future'
+import Future from 'fibers/future'
+
+import {ClassyTestCase, ExpectationManager} from './lib'
 
 # Prevent parallel setup requests.
 isInTestControl = false
@@ -34,7 +36,7 @@ Meteor.methods
 
     # Create a new instance of TestCaseResults so we can perform asserts on the server
     # and transfer results to the client test that is executing.
-    test = new TestCaseResults testCase,
+    test = new Tinytest._TestCaseResults testCase,
       (event) ->
         # Store events so they can be replayed on the client.
         test.events.push event
@@ -58,7 +60,7 @@ Meteor.methods
 
       # Create a new expectation manager with a specific completion handler.
       expectationFuture = new Future()
-      expectationManager = new share.ExpectationManager test, =>
+      expectationManager = new ExpectationManager test, =>
         Meteor.clearTimeout timer
         # Each function is assigned a new expectation manager, so we clear the current one.
         callable.testCase._internal.expectationManager = null
@@ -99,37 +101,38 @@ Meteor.methods
     test.events
 
 # Extend server-side test case with additional methods.
-class ClassyTestCase extends ClassyTestCase
-  asyncWait: (timeout, handler) =>
-    throw new Error "You may only use 'asyncWait' in server-side tests." unless Meteor.isServer
+ClassyTestCase::asyncWait = (timeout, handler) ->
+  throw new Error "You may only use 'asyncWait' in server-side tests." unless Meteor.isServer
 
-    future = new Future()
+  future = new Future()
 
-    # Install a timeout handler so that we always unblock.
-    Meteor.setTimeout ->
-      future.return() unless future.isResolved()
-    ,
-      timeout
+  # Install a timeout handler so that we always unblock.
+  Meteor.setTimeout ->
+    future.return() unless future.isResolved()
+  ,
+    timeout
 
-    # Invoke the handler and pass it the future we are waiting on. The handler should
-    # resolve the future before the timeout expires.
-    cleanupHandler = handler future
+  # Invoke the handler and pass it the future we are waiting on. The handler should
+  # resolve the future before the timeout expires.
+  cleanupHandler = handler future
 
-    try
-      future.wait()
-    finally
-      cleanupHandler?()
+  try
+    future.wait()
+  finally
+    cleanupHandler?()
 
-    return
+  return
 
-  asyncWaitCursorChange: (timeout, cursor, predicate) =>
-    @asyncWait timeout, (future) ->
-      handle = cursor.observe
-        changed: (newDocument) ->
-          if predicate newDocument
-            # Resolve the future.
-            future.return() unless future.isResolved()
+ClassyTestCase::asyncWaitCursorChange = (timeout, cursor, predicate) ->
+  @asyncWait timeout, (future) ->
+    handle = cursor.observe
+      changed: (newDocument) ->
+        if predicate newDocument
+          # Resolve the future.
+          future.return() unless future.isResolved()
 
-      # Ensure that we stop observing the cursor for changes once the future is resolved.
-      return ->
-        handle.stop()
+    # Ensure that we stop observing the cursor for changes once the future is resolved.
+    return ->
+      handle.stop()
+
+export {ClassyTestCase}
