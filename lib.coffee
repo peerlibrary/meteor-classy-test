@@ -211,7 +211,7 @@ export class ClassyTestCase
         # Execute the test.
         Tinytest.addAsync "#{ testCase.getTestName() } - #{ name.slice(4) }", (test, onComplete) ->
           # Based on testAsyncMulti from Meteor's test-helpers package.
-          remaining = testChain
+          remaining = _.clone testChain
           currentAsyncBlock = 0
 
           # Initialize the local test instance.
