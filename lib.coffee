@@ -6,6 +6,10 @@ getAllPropertyNames = (obj) ->
     obj = Object.getPrototypeOf(obj)
   Array.from(names.values())
 
+copyFunction = (f) ->
+  (args...) ->
+    f.apply @, args
+
 export class ExpectationManager
   constructor: (@test, @onComplete) ->
     @closed = false
@@ -76,6 +80,15 @@ export class ClassyTestCase
   @_testRegistry: {}
 
   constructor: ->
+    # We want to copy prototype functions so that we can attach properties to them if necessary.
+    # Otherwise them might be shared between multiple instances of the same base class.
+    @setUpServer = copyFunction @setUpServer
+    @setUp = copyFunction @setUp
+    @setUpClient = copyFunction @setUpClient
+    @tearDownClient = copyFunction @tearDownClient
+    @tearDownServer = copyFunction @tearDownServer
+    @tearDown = copyFunction @tearDown
+
     # Tag server-specific setup/tear down methods so they always run on the server.
     ClassyTestCase.runOnServer @setUpServer
     ClassyTestCase.runOnBoth @setUp
